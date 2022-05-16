@@ -240,8 +240,7 @@ void
 train_global(uint8_t outcome) {
   int global_entries = 1 << globalBits;
   //Update history register
-  path_history = ((path_history << 1) | outcome) & (global_entries-1); 
-  uint32_t index = path_history;
+  uint32_t index = path_history & (global_entries-1);
 
   //Update state of entry in bht based on outcome
   switch(global_bht[index]){
@@ -260,7 +259,7 @@ train_global(uint8_t outcome) {
     default:
       printf("Warning: Undefined state of entry in GSHARE BHT!\n");
   }
-
+  path_history = ((path_history << 1) | outcome) & (global_entries-1); 
 }
 
 void
