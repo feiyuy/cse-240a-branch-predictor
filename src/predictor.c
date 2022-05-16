@@ -51,11 +51,15 @@ uint8_t *local_bht;
 int globalBits = 12;
 
 uint8_t *global_bht;
-uint16_t path_history;
+uint64_t path_history;
 
 //tournament
 
 uint8_t *tour_bht;
+
+//custom
+int customBits = 14;
+uint8_t *custom_bht;
 
 
 //------------------------------------//
@@ -333,7 +337,71 @@ cleanup_tour() {
   cleanup_local();
 }
 
+//custom
+void init_custom() {
+ int custom_entries = 1 << customBits;
+  custom_bht = (uint8_t*)malloc(custom_entries * sizeof(uint8_t));
+  int i = 0;
+  for(i = 0; i< custom_entries; i++){
+    custom_bht[i] = WN;
+  }
+  init_local();
+  init_gshare();
+}
 
+
+uint8_t 
+custom_predict(uint32_t pc) {
+  int custom_entries = 1 << customBits;
+  uint32_t index = ghistory & (custom_entries-1);
+  switch(custom_bht[index]){
+    case WN:
+      return local_predict(pc);
+    case SN:
+      return local_predict(pc);
+    case WT:
+      return gshare_predict(pc);
+    case ST:
+      return gshare_predict(pc);
+    default:
+      printf("Warning: Undefined state of entry in GSHARE BHT!\n");
+      return NOTTAKEN;
+  }
+}
+
+void
+train_custom(uint32_t pc, uint8_t outcome) {
+  int custom_entries = 1 << customBits;
+
+  uint32_t index = ghistory & (custom_entries-1);
+  int correct = (gshare_predict(pc) == outcome)? 1 : 0;
+  //Update state of entry in bht based on outcome
+  switch(custom_bht[index]){
+    case WN:
+      custom_bht[index] = (correct==1)?WT:SN;
+      break;
+    case SN:
+      custom_bht[index] = (correct==1)?WN:SN;
+      break;
+    case WT:
+      custom_bht[index] = (correct==1)?ST:WN;
+      break;
+    case ST:
+      custom_bht[index] = (correct==1)?ST:WT;
+      break;
+    default:
+      printf("Warning: Undefined state of entry in GSHARE BHT!\n");
+  }
+  train_local(pc, outcome);
+    train_gshare(pc, outcome);
+}
+
+void
+cleanup_custom() {
+  free(custom_bht);
+  cleanup_gshare();
+  cleanup_local();
+}
 
 void
 init_predictor()
@@ -346,6 +414,7 @@ init_predictor()
     case TOURNAMENT:
       init_tour();
     case CUSTOM:
+      init_custom();
     default:
       break;
   }
@@ -369,6 +438,7 @@ make_prediction(uint32_t pc)
     case TOURNAMENT:
       return tour_predict(pc);
     case CUSTOM:
+      return custom_predict(pc);
     default:
       break;
   }
@@ -393,6 +463,7 @@ train_predictor(uint32_t pc, uint8_t outcome)
     case TOURNAMENT:
       return train_tour(pc, outcome);
     case CUSTOM:
+      return train_custom(pc, outcome);
     default:
       break;
   }
