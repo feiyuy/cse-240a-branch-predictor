@@ -304,7 +304,7 @@ void
 train_tour(uint32_t pc, uint8_t outcome) {
   int tour_entries = 1 << globalBits;
 
-  uint32_t index = ((path_history << 1) | outcome) & (tour_entries-1); 
+  uint32_t index = path_history & (tour_entries-1);
   int correct = (global_predict(path_history) == outcome)? 1 : 0;
   //Update state of entry in bht based on outcome
   switch(tour_bht[index]){
