@@ -44,11 +44,11 @@ uint64_t ghistory;
 //local
 int localBits = 10;
 
-uint16_t *local_feature;
+uint64_t *local_feature;
 uint8_t *local_bht;
 
 //global
-int globalBits = 12;
+int globalBits = 16;
 
 uint8_t *global_bht;
 uint64_t path_history;
@@ -145,7 +145,7 @@ cleanup_gshare() {
 //
 void init_local() {
  int local_entries = 1 << localBits;
-  local_feature = (uint16_t*)malloc(local_entries * sizeof(uint16_t));
+  local_feature = (uint64_t*)malloc(local_entries * sizeof(uint64_t));
   local_bht = (uint8_t*)malloc(local_entries * sizeof(uint8_t));
   int i = 0;
   for(i = 0; i< local_entries; i++){
