@@ -176,7 +176,6 @@ train_local(uint32_t pc, uint8_t outcome) {
   //get lower ghistoryBits of pc
   uint32_t local_entries = 1 << localBits;
   uint32_t pc_lower_bits = pc & (local_entries-1);
-  local_feature[pc_lower_bits] = (local_feature[pc_lower_bits] << 1 | outcome) & (local_entries-1);
   uint32_t index = local_feature[pc_lower_bits];
 
   //Update state of entry in bht based on outcome
@@ -196,6 +195,7 @@ train_local(uint32_t pc, uint8_t outcome) {
     default:
       printf("Warning: Undefined state of entry in GSHARE BHT!\n");
   }
+  local_feature[pc_lower_bits] = (local_feature[pc_lower_bits] << 1 | outcome) & (local_entries-1);
 }
 
 void
