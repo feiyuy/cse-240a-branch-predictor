@@ -176,7 +176,7 @@ train_local(uint32_t pc, uint8_t outcome) {
   //get lower ghistoryBits of pc
   uint32_t local_entries = 1 << localBits;
   uint32_t pc_lower_bits = pc & (local_entries-1);
-  local_feature[pc_lower_bits] = (local_feature[pc_lower_bits] << 1 + outcome) & (local_entries-1);
+  local_feature[pc_lower_bits] = (local_feature[pc_lower_bits] << 1 | outcome) & (local_entries-1);
   uint32_t index = local_feature[pc_lower_bits];
 
   //Update state of entry in bht based on outcome
@@ -273,7 +273,7 @@ void init_tour() {
  int tour_entries = 1 << globalBits;
   tour_bht = (uint8_t*)malloc(tour_entries * sizeof(uint8_t));
   int i = 0;
-  for(i = 0; i< global_entries; i++){
+  for(i = 0; i< tour_entries; i++){
     tour_bht[i] = WN;
   }
   init_local();
@@ -284,7 +284,7 @@ void init_tour() {
 uint8_t 
 tour_predict(uint32_t pc) {
   int tour_entries = 1 << globalBits;
-  uint32_t index = path_history & (global_entries-1);
+  uint32_t index = path_history & (tour_entries-1);
   switch(tour_bht[index]){
     case WN:
       return local_predict(pc);
@@ -304,7 +304,7 @@ void
 train_tour(uint32_t pc, uint8_t outcome) {
   int tour_entries = 1 << globalBits;
 
-  uint32_t index = ((path_history << 1) | outcome) & (global_entries-1); 
+  uint32_t index = ((path_history << 1) | outcome) & (tour_entries-1); 
   int correct = (global_predict(path_history) == outcome)? 1 : 0;
   //Update state of entry in bht based on outcome
   switch(tour_bht[index]){
@@ -328,8 +328,8 @@ train_tour(uint32_t pc, uint8_t outcome) {
 }
 
 void
-cleanup_global() {
-  free(global_btour_bhtht);
+cleanup_tour() {
+  free(tour_bht);
   cleanup_global();
   cleanup_local();
 }
